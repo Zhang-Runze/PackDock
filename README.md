@@ -33,3 +33,6 @@ It's worth noting that PackDock offers a highly general flexible docking strateg
 # preprocess
 
 [ADFR-Suite](https://ccsb.scripps.edu/adfr/downloads/)
+
+# Retraining DifPocket
+Download the data([BC40],[PDBbind]) and place it as described in the "Dataset" section above.
