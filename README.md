@@ -13,3 +13,7 @@ by [Runze Zhang](https://github.com/Zhang-Runze)
 # Setup Environment
 
 We recommend setting up the environment using [Anaconda](https://docs.anaconda.com/free/anaconda/install/index.html).
+
+Clone the current repo
+
+    git clone https://github.com/Zhang-Runze/PackDock.git
