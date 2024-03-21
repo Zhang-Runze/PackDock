@@ -30,9 +30,13 @@ Then you need to install a ligand conformation sampling algorithm (such as [Auto
 It's worth noting that PackDock offers a highly general flexible docking strategy, capable of integrating any ligand conformation sampling algorithm develop yourself or you might choose to use. This implies that employing more  advanced ligand conformation sampling algorithms could potentially lead to unexpectedly impressive docking results.
 
 
-# preprocess
+# data preprocess
 
 [ADFR-Suite](https://ccsb.scripps.edu/adfr/downloads/)
+
+# Running PackPocket on your protein
+
+# Running PackDock on your complex
 
 # Retraining DiffPocket
 Download the data([BC40](https://zenodo.org/) or [PDBbind](https://zenodo.org/records/6408497)) and place it as described in the "Dataset" section above.
