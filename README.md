@@ -8,3 +8,7 @@ If you have any question, feel free to open an issue or reach out to us: [zhangr
 
 by [Runze Zhang](https://github.com/Zhang-Runze)
 ![](https://github.com/Zhang-Runze/PackDock/blob/main/figs/Method%20Overview.jpg)
+
+
+#Setup Environment
+We recommend setting up the environment using [Anaconda](https://docs.anaconda.com/free/anaconda/install/index.html).
