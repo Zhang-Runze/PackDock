@@ -25,3 +25,6 @@ This is an example for how to set up a working conda environment to run the code
     conda install pytorch pytorch-cuda=11.7 -c pytorch -c nvidia
     pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-1.13.0+cu117.html
     python -m pip install openbabel PyYAML scipy "networkx[default]" biopython rdkit-pypi e3nn spyrmsd pandas biopandas
+    
+Then you need to install a ligand conformation sampling algorithm (such as [AutoDock-Vina](https://github.com/ccsb-scripps/AutoDock-Vina), [gnina](https://github.com/gnina/gnina), [Vina-GPU](https://github.com/DeltaGroupNJUPT/Vina-GPU-2.0), etc.).
+It's worth noting that PackDock offers a highly general flexible docking strategy, capable of integrating any ligand conformation sampling algorithm develop yourself or you might choose to use. This implies that employing more  advanced ligand conformation sampling algorithms could potentially lead to unexpectedly impressive docking results.
