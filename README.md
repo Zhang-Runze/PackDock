@@ -1,12 +1,12 @@
 # PackDock: a Diffusion Based Side Chain Packing Model for Flexible Protein-Ligand Docking 
 
-Code will be available after our paper has been published!
 
 This repo contains a PyTorch implementation for the paper  PackDock: a Diffusion Based Side Chain Packing Model for Flexible Protein-Ligand Docking 
 
 If you have any question, feel free to open an issue or reach out to us: [zhangrunze@simm.ac.cn](zhangrunze@simm.ac.cn)✉️.
 
 by [Runze Zhang](https://github.com/Zhang-Runze)
+# PackDock Overview
 ![](https://github.com/Zhang-Runze/PackDock/blob/main/figs/Method%20Overview.jpg)
 
 
@@ -36,7 +36,22 @@ It's worth noting that PackDock offers a highly general flexible docking strateg
 
 # Running PackPocket on your protein
 
+Protein pocket packing:
+
+    python -m evaluate_protein --run_name Protein pocket packing --inference_steps 20 --samples_per_complex 10 --batch_size 10 --actual_steps 20 --cache_path data/cacheTest_CASP14 --no_final_step_noise --data_dir data/CASP/CASP14/ --split_path data/splits/CASP14_list --save_visualisation
+
+Ligand based protein pocket packing:
+
+    python -m evaluate_ligand_based_protein --run_name Ligand based protein pocket packing --inference_steps 20 --samples_per_complex 10 --batch_size 10 --actual_steps 20 --cache_path data/cacheTest_PDBBind --no_final_step_noise --data_dir data/PDBBind_processed --split_path data/splits/timesplit_test_no_rec_overlap --save_visualisation
+
 # Running PackDock on your complex
+
+    python docking_evaluate_gnina_apo.py --rmsd
+
+or
+
+    python docking_evaluate_vina_apo.py --rmsd
+    
 
 # Retraining PackPocket
 Download the data([BC40](https://zenodo.org/) or [PDBbind](https://zenodo.org/records/6408497)) and place it as described in the "Dataset" section above.
