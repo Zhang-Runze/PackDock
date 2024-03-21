@@ -24,4 +24,4 @@ This is an example for how to set up a working conda environment to run the code
     conda activate packdock
     conda install pytorch pytorch-cuda=11.7 -c pytorch -c nvidia
     pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-1.13.0+cu117.html
-    python -m pip install PyYAML scipy "networkx[default]" biopython rdkit-pypi e3nn spyrmsd pandas biopandas
+    python -m pip install openbabel PyYAML scipy "networkx[default]" biopython rdkit-pypi e3nn spyrmsd pandas biopandas
