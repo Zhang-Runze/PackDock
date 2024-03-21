@@ -35,4 +35,4 @@ It's worth noting that PackDock offers a highly general flexible docking strateg
 [ADFR-Suite](https://ccsb.scripps.edu/adfr/downloads/)
 
 # Retraining DifPocket
-Download the data([BC40](https://zenodo.org/) or [PDBbind](https://zenodo.org/)) and place it as described in the "Dataset" section above.
+Download the data([BC40](https://zenodo.org/) or [PDBbind]([https://zenodo.org/](https://zenodo.org/records/6408497))) and place it as described in the "Dataset" section above.
