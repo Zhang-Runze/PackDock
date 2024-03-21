@@ -34,5 +34,16 @@ It's worth noting that PackDock offers a highly general flexible docking strateg
 
 [ADFR-Suite](https://ccsb.scripps.edu/adfr/downloads/)
 
-# Retraining DifPocket
+# Retraining DiffPocket
 Download the data([BC40](https://zenodo.org/) or [PDBbind](https://zenodo.org/records/6408497)) and place it as described in the "Dataset" section above.
+
+### Training a model yourself and using those weights
+Train the DiffPocket:
+
+    python -m train_protein --run_name Diffpocket_protein --test_sigma_intervals  --log_dir workdir --lr 1e-3 --batch_size 8 --ns 48 --nv 10 --num_conv_layers 6 --dynamic_max_cross --scheduler plateau --scale_by_sigma --dropout 0.1 --remove_hs --c_alpha_max_neighbors 24 --receptor_radius 30.0 --atom_radius 5.0 --cross_distance_embed_dim 64 --distance_embed_dim 64 --sigma_embed_dim 64 --cross_max_distance 20 --num_dataloader_workers 36 --cudnn_benchmark --val_inference_freq 5 --num_inference_complexes 100 --use_ema --scheduler_patience 30 --n_epochs 300 --all_atoms --num_worker 36 --no_torsion --data_dir data/bc40_pockets_processed/ --split_train data/splits/bc40_train_set --split_val data/splits/bc40_validation_set --split_test data/splits/bc40_test_set 
+
+Train the ligand-based DiffPocket:
+
+    python -m train_ligand_based_protein --run_name Diffpocket_ligand_based_protein --test_sigma_intervals  --log_dir workdir --lr 1e-3 --batch_size 8 --ns 48 --nv 10 --num_conv_layers 6 --dynamic_max_cross --scheduler plateau --scale_by_sigma --dropout 0.1 --remove_hs --c_alpha_max_neighbors 24 --receptor_radius 30.0 --atom_radius 5.0 --cross_distance_embed_dim 64 --distance_embed_dim 64 --sigma_embed_dim 64 --cross_max_distance 20 --num_dataloader_workers 1 --cudnn_benchmark --val_inference_freq 5 --num_inference_complexes 100 --use_ema --scheduler_patience 30 --n_epochs 300 --all_atoms --num_worker 36 --no_torsion --data_dir data/PDBBind_processed/ --split_train data/splits/timesplit_no_lig_overlap_train --split_val data/splits/timesplit_no_lig_overlap_val --split_test data/splits/timesplit_test_no_rec_overlap
+
+The model weights are saved in the `workdir` directory.
