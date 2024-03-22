@@ -1,0 +1,48 @@
+REMARK   4      COMPLIES WITH FORMAT V. 3.0, 1-DEC-2006
+REMARK 888
+REMARK 888 WRITTEN BY MAESTRO (A PRODUCT OF SCHRODINGER, LLC)
+MODEL        1
+HETATM    1 CL1  HUX A 803       7.560  70.996  69.959  1.00 25.95          Cl  
+HETATM    2  C1  HUX A 803       6.378  70.635  68.845  1.00 28.50           C  
+HETATM    3  N1  HUX A 803       5.960  69.581  65.309  1.00 24.85           N  
+HETATM    4  C3  HUX A 803       5.569  69.950  66.666  1.00 26.43           C  
+HETATM    5  C4  HUX A 803       4.975  69.198  64.470  1.00 24.00           C  
+HETATM    6  N2  HUX A 803       1.886  69.430  66.469  1.00 27.04           N  
+HETATM    7  C14 HUX A 803       3.228  69.512  66.146  1.00 26.27           C  
+HETATM    8  C2  HUX A 803       6.670  70.277  67.434  1.00 27.70           C  
+HETATM    9  C17 HUX A 803       4.934  70.630  69.274  1.00 26.96           C  
+HETATM   10  C15 HUX A 803       4.248  69.912  67.043  1.00 26.87           C  
+HETATM   11  C5  HUX A 803       5.519  68.784  62.997  1.00 24.99           C  
+HETATM   12  C13 HUX A 803       3.623  69.110  64.752  1.00 25.35           C  
+HETATM   13  C6  HUX A 803       4.527  67.880  62.246  1.00 25.41           C  
+HETATM   14  C7  HUX A 803       4.282  66.405  62.996  1.00 25.50           C  
+HETATM   15  C12 HUX A 803       3.171  68.555  62.217  1.00 25.36           C  
+HETATM   16  C8  HUX A 803       3.305  66.089  63.849  1.00 26.25           C  
+HETATM   17  C9  HUX A 803       2.303  67.180  64.150  1.00 26.66           C  
+HETATM   18  C18 HUX A 803       3.279  64.636  64.466  1.00 26.17           C  
+HETATM   19  C11 HUX A 803       2.621  68.602  63.709  1.00 26.07           C  
+HETATM   20  C10 HUX A 803       4.394  63.619  64.131  1.00 24.58           C  
+HETATM   21  C16 HUX A 803       3.913  70.303  68.461  1.00 26.80           C  
+CONECT    1    2
+CONECT    2    1    8    9
+CONECT    3    4    5
+CONECT    4    3    8   10
+CONECT    5    3   11   12
+CONECT    6    7
+CONECT    7    6   10   12
+CONECT    8    2    4
+CONECT    9    2   21
+CONECT   10    4    7   21
+CONECT   11    5   13
+CONECT   12    5    7   19
+CONECT   13   11   14   15
+CONECT   14   13   16
+CONECT   15   13   19
+CONECT   16   14   17   18
+CONECT   17   16   19
+CONECT   18   16   20
+CONECT   19   12   15   17
+CONECT   20   18
+CONECT   21    9   10
+ENDMDL
+END   
