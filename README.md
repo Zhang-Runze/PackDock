@@ -31,8 +31,11 @@ It's worth noting that PackDock offers a highly general flexible docking strateg
 
 
 # data preprocess
+First run:
 
-[ADFR-Suite](https://ccsb.scripps.edu/adfr/downloads/)
+    python get_pocket/get_pocket.py
+    
+Then proceed with further processing using [ADFR-Suite](https://ccsb.scripps.edu/adfr/downloads/) and OpenBabel.
 
 # Running PackPocket on your protein
 
