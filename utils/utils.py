@@ -15,7 +15,6 @@ from torch_geometric.nn.data_parallel import DataParallel
 
 from models.all_atom_score_model import TensorProductScoreModel as AAScoreModel
 from models.all_atom_score_model import TensorProduct_protein_ScoreModel
-from models.score_model import TensorProductScoreModel as CGScoreModel
 from utils.diffusion_utils import get_timestep_embedding
 from spyrmsd import rmsd, molecule
 
@@ -124,8 +123,6 @@ def get_optimizer_and_scheduler(args, model, scheduler_mode='min'):
 def get_model(args, device, t_to_sigma, no_parallel=False, confidence_mode=False, only_protein=False):
     if 'all_atoms' in args and args.all_atoms:
         model_class = AAScoreModel
-    else:
-        model_class = CGScoreModel
 
     if only_protein:
         print("Conformational Selection Stage")
