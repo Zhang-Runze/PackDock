@@ -284,39 +284,6 @@ class ExponentialMovingAverage:
 
 
 
-def sdf2smi (SDF_file):
-    conv = ob.OBConversion()
-    mol = ob.OBMol()
-    conv.SetInAndOutFormats("sdf", "smiles")
-    conv.ReadFile(mol, SDF_file)
-    smiles = conv.WriteString(mol)
-    return smiles
-
-def smi2mol2(smiles, out_path):
-    if not os.path.exists(out_path):
-        os.system("mkdir "+out_path)
-    PDBID = out_path.split("/")[0]
-    mol = pybel.readstring('smi', smiles)
-    mol.make3D()
-    mol.localopt(forcefield='uff')
-    out_file = os.path.join(out_path, f"{PDBID}_ligand.mol2")   #test_outdir/1a0q/1a0q_ligand.mol2
-    mol.write('mol2', out_file, overwrite=True)
-    return out_file
-
-def pdbqt2mol2(pdbqt_path, remove_source_file = False):
-
-    obConversion = ob.OBConversion()
-    obConversion.SetInFormat("pdbqt")
-    obConversion.SetOutFormat("mol2")
-    mol = ob.OBMol()
-    obConversion.ReadFile(mol, pdbqt_path)
-    new_mol2_path = pdbqt_path.replace('.pdbqt', '.mol2')
-    obConversion.WriteFile(mol, new_mol2_path)
-    if remove_source_file == True:
-        os.remove(pdbqt_path)
-
-    return new_mol2_path
-
 def pdbqt2pdb(pdbqt_path, remove_source_file = False):
     obConversion = ob.OBConversion()
     obConversion.SetInFormat("pdbqt")
@@ -330,87 +297,7 @@ def pdbqt2pdb(pdbqt_path, remove_source_file = False):
 
     return new_pdb_path
 
-def get_first_docking_config(out_protein_path, out_ligand_path, out_path, pdb_name, seed, pocket_size = 30, mode = "32"):
-    ori_coords = get_coor_from_pdbqt(out_protein_path)
-    center_max = [-1e4,-1e4,-1e4]
-    center_min = [1e4,1e4,1e4]
-    center = [0,0,0]
-    size = [0,0,0]
-    for co in ori_coords:
-        for i in range(3):
-            center_max[i] = max(center_max[i], co[i])
-            center_min[i] = min(center_min[i], co[i])
-    for i in range(3):
-        center[i] = (center_max[i] + center_min[i]) / 2
-        size[i] = (center_max[i] - center_min[i])
 
-    new_config = os.path.join(out_path,pdb_name+"_first_docking_config.txt")
-    with open(new_config,"w") as f:
-        f.write("center_x = {}\ncenter_y = {}\ncenter_z = {}\n".format(center[0],center[1],center[2]))
-        f.write("size_x = {}\nsize_y = {}\nsize_z = {}\n".format(size[0],size[1],size[2]))
-        if mode in ['detail', 'balance']:
-            f.write("search_mode = {}\n".format(mode))
-        else:
-            f.write("exhaustiveness = {}\n".format(mode.split('_')[0]))
-        
-        f.write("receptor = {}\nligand = {}\n".format(out_protein_path, out_ligand_path))
-        f.write("out = {}\nseed = {}\nnum_modes = 6\nverbosity = 1\n".format(os.path.join(out_path,pdb_name+"_first_docking_ligand_out.pdbqt"), seed))
-        vina_out = os.path.join(out_path,pdb_name+"_first_docking_ligand_out.pdbqt")
-    return new_config, vina_out
-
-def get_loop_docking_config(protein_path, out_ligand_path, out_path, pdb_name, idx, loop_num, seed, pocket_size = 30, mode = "32"):
-    center_max = [-1e4,-1e4,-1e4]
-    center_min = [1e4,1e4,1e4]
-    center = [0,0,0]
-    size = [0,0,0]
-    ori_coords = get_coor_from_pdbqt(protein_path)
-    for co in ori_coords:
-        for i in range(3):
-            center_max[i] = max(center_max[i], co[i])
-            center_min[i] = min(center_min[i], co[i])
-    for i in range(3):
-        center[i] = (center_max[i] + center_min[i]) / 2
-        size[i] = (center_max[i] - center_min[i])
-
-    new_config = os.path.join(out_path,pdb_name+"_loop_docking_config.txt")
-    with open(new_config,"w") as f:
-        f.write("center_x = {}\ncenter_y = {}\ncenter_z = {}\n".format(center[0],center[1],center[2]))
-        f.write("size_x = {}\nsize_y = {}\nsize_z = {}\n".format(size[0],size[1],size[2]))
-        if mode in ['detail', 'balance']:
-            f.write("search_mode = {}\n".format(mode))
-        else:
-            f.write("exhaustiveness = {}\n".format(mode.split('_')[0]))
-        f.write("receptor = {}\nligand = {}\n".format(protein_path, out_ligand_path))
-        f.write("out = {}\nseed = {}\nnum_modes = 6\nverbosity = 1\n".format(os.path.join(out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt"), seed))
-        vina_out = os.path.join(out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt")
-    return new_config, vina_out
-
-def get_new_docking_config(protein_path, out_ligand_path, out_path, pdb_name, idx, loop_num, seed, pocket_size = 30, mode = "32"):
-    center_max = [-1e4,-1e4,-1e4]
-    center_min = [1e4,1e4,1e4]
-    center = [0,0,0]
-    size = [0,0,0]
-    ori_coords = get_coor_from_pdbqt(protein_path)
-    for co in ori_coords:
-        for i in range(3):
-            center_max[i] = max(center_max[i], co[i])
-            center_min[i] = min(center_min[i], co[i])
-    for i in range(3):
-        center[i] = (center_max[i] + center_min[i]) / 2
-        size[i] = (center_max[i] - center_min[i])
-
-    new_config = os.path.join(out_path,pdb_name+"_loop_docking_config.txt")
-    with open(new_config,"w") as f:
-        f.write("center_x = {}\ncenter_y = {}\ncenter_z = {}\n".format(center[0],center[1],center[2]))
-        f.write("size_x = {}\nsize_y = {}\nsize_z = {}\n".format(size[0],size[1],size[2]))
-        if mode in ['detail', 'balance']:
-            f.write("search_mode = {}\n".format(mode))
-        else:
-            f.write("exhaustiveness = {}\n".format(mode.split('_')[0]))
-        f.write("receptor = {}\nligand = {}\n".format(protein_path, out_ligand_path))
-        f.write("out = {}\nseed = {}\nnum_modes = 1\nverbosity = 1\n".format(os.path.join(out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt"), seed))
-        vina_out = os.path.join(out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt")
-    return new_config, vina_out
 
 def get_gnina_docking_config(protein_path, out_ligand_path, out_path, pdb_name, idx, loop_num, seed, pocket_size = 30, mode = "32"):
     vina_out = os.path.join(out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt")
@@ -427,79 +314,6 @@ def get_gnina_docking_config(protein_path, out_ligand_path, out_path, pdb_name, 
         
     return new_config, vina_out
 
-
-def get_gpu_docking_config(protein_path, out_ligand_path, out_path, pdb_name, idx, loop_num, seed, pocket_size = 30, mode = "32"):
-    center_max = [-1e4,-1e4,-1e4]
-    center_min = [1e4,1e4,1e4]
-    center = [0,0,0]
-    size = [0,0,0]
-    ori_coords = get_coor_from_pdbqt(protein_path)
-    for co in ori_coords:
-        for i in range(3):
-            center_max[i] = max(center_max[i], co[i])
-            center_min[i] = min(center_min[i], co[i])
-    for i in range(3):
-        center[i] = (center_max[i] + center_min[i]) / 2
-        size[i] = (center_max[i] - center_min[i])
-
-
-    new_config = os.path.join("./"+out_path,pdb_name+"_loop_docking_config.txt")
-    with open(new_config,"w") as f:
-        f.write("center_x = {}\ncenter_y = {}\ncenter_z = {}\n".format(center[0],center[1],center[2]))
-        f.write("size_x = {}\nsize_y = {}\nsize_z = {}\n".format(size[0],size[1],size[2]))
-        f.write("thread = 8000\n")
-        f.write("receptor = {}\nligand = {}\n".format("./"+protein_path, "./"+out_ligand_path))
-        f.write("out = {}\nseed = {}\nnum_modes = 1\n".format(os.path.join("./"+out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt"), seed))
-        vina_out = os.path.join("./"+out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt")
-    return new_config, vina_out
-
-def get_gpu_docking_baseline_config(protein_path, out_ligand_path, out_path, pdb_name, idx, loop_num, seed, pocket_size = 30, mode = "32"):
-    center_max = [-1e4,-1e4,-1e4]
-    center_min = [1e4,1e4,1e4]
-    center = [0,0,0]
-    size = [0,0,0]
-    ori_coords = get_coor_from_pdbqt(protein_path)
-    for co in ori_coords:
-        for i in range(3):
-            center_max[i] = max(center_max[i], co[i])
-            center_min[i] = min(center_min[i], co[i])
-    for i in range(3):
-        center[i] = (center_max[i] + center_min[i]) / 2
-        size[i] = (center_max[i] - center_min[i])-5
-
-    new_config = os.path.join("./"+out_path,pdb_name+"_loop_docking_config.txt")
-    with open(new_config,"w") as f:
-        f.write("center_x = {}\ncenter_y = {}\ncenter_z = {}\n".format(center[0],center[1],center[2]))
-        f.write("size_x = {}\nsize_y = {}\nsize_z = {}\n".format(min(25,max(size[0],15)),min(25,max(size[1],15)),min(25,max(size[2],15))))
-        f.write("thread = 8000\n")
-        f.write("receptor = {}\nligand = {}\n".format("./"+protein_path, "./"+out_ligand_path))
-        f.write("out = {}\nseed = {}\nnum_modes = 36\n".format(os.path.join("./"+out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt"), seed))
-        vina_out = os.path.join("./"+out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt")
-    return new_config, vina_out
-
-def get_gpu_docking_config_with_ligand_boxsize(protein_path, out_ligand_path, ori_LIG_pdb_file, out_path, pdb_name, idx, loop_num, seed, pocket_size = 30, mode = "32"):
-    center_max = [-1e4,-1e4,-1e4]
-    center_min = [1e4,1e4,1e4]
-    center = [0,0,0]
-    size = [0,0,0]
-    ori_coords = get_coordinates_from_pdb(ori_LIG_pdb_file)
-    for co in ori_coords:
-        for i in range(3):
-            center_max[i] = max(center_max[i], co[i])
-            center_min[i] = min(center_min[i], co[i])
-    for i in range(3):
-        center[i] = (center_max[i] + center_min[i]) / 2
-        size[i] = (center_max[i] - center_min[i])+4
-
-    new_config = os.path.join("./"+out_path,pdb_name+"_loop_docking_config.txt")
-    with open(new_config,"w") as f:
-        f.write("center_x = {}\ncenter_y = {}\ncenter_z = {}\n".format(center[0],center[1],center[2]))
-        f.write("size_x = {}\nsize_y = {}\nsize_z = {}\n".format(max(size[0],10),max(size[1],10),max(size[2],10)))
-        f.write("thread = 8000\n")
-        f.write("receptor = {}\nligand = {}\n".format("./"+protein_path, "./"+out_ligand_path))
-        f.write("out = {}\nseed = {}\nnum_modes = 1\n".format(os.path.join("./"+out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt"), seed))
-        vina_out = os.path.join("./"+out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt")
-    return new_config, vina_out
 
 
 def get_gpu_docking_config_with_ligand_boxsize_sdf(protein_path, out_ligand_path, sdf_file, out_path, pdb_name, idx, loop_num, seed, pocket_size = 30, mode = "32"):
@@ -547,89 +361,8 @@ def get_gpu_docking_config_with_ligand_boxsize_sdf(protein_path, out_ligand_path
     return new_config, vina_out
 
 
-def get_gpu_docking_flex_config_with_ligand_boxsize_sdf(rigid_protein_file, flex_protein_file, out_ligand_path, sdf_file, out_path, pdb_name, idx, loop_num, seed, pocket_size = 30, mode = "32"):
-    mol_supplier = Chem.SDMolSupplier(sdf_file,sanitize = False)
-    min_x, min_y, min_z = 1e4, 1e4, 1e4
-    max_x, max_y, max_z = -1e4, -1e4, -1e4
-    for mol in mol_supplier:
-        if mol is not None:
-            conf = mol.GetConformer()
-            for atom in mol.GetAtoms():
-                pos = conf.GetAtomPosition(atom.GetIdx())
-                x, y, z = pos.x, pos.y, pos.z
-                min_x = min(min_x, x)
-                min_y = min(min_y, y)
-                min_z = min(min_z, z)
-                max_x = max(max_x, x)
-                max_y = max(max_y, y)
-                max_z = max(max_z, z)
-    center_x = (max_x + min_x) / 2
-    center_y = (max_y + min_y) / 2
-    center_z = (max_z + min_z) / 2
-    size_x = max_x - min_x + 10
-    size_y = max_y - min_y + 10
-    size_z = max_z - min_z + 10
 
 
-
-    new_config = os.path.join("./"+out_path,pdb_name+"_loop_docking_config.txt")
-    with open(new_config,"w") as f:
-        f.write("center_x = {}\ncenter_y = {}\ncenter_z = {}\n".format(center_x,center_y,center_z))
-        f.write("size_x = {}\nsize_y = {}\nsize_z = {}\n".format(size_x,size_y,size_z))
-        f.write("thread = 8000\n")
-        f.write("receptor = {}\nflex = {}\nligand = {}\n".format("./"+rigid_protein_file, "./"+flex_protein_file, "./"+out_ligand_path))
-        f.write("out = {}\nseed = {}\nnum_modes = 36\n".format(os.path.join("./"+out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt"), seed))
-        vina_out = os.path.join("./"+out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt")
-    return new_config, vina_out
-
-
-def get_gpu_docking_baseline_config_with_ligand_boxsize(protein_path, out_ligand_path, ori_LIG_pdb_file, out_path, pdb_name, idx, loop_num, seed, pocket_size = 30, mode = "32"):
-    center_max = [-1e4,-1e4,-1e4]
-    center_min = [1e4,1e4,1e4]
-    center = [0,0,0]
-    size = [0,0,0]
-    ori_coords = get_coordinates_from_pdb(ori_LIG_pdb_file)
-    for co in ori_coords:
-        for i in range(3):
-            center_max[i] = max(center_max[i], co[i])
-            center_min[i] = min(center_min[i], co[i])
-    for i in range(3):
-        center[i] = (center_max[i] + center_min[i]) / 2
-        size[i] = (center_max[i] - center_min[i])+4
-
-    new_config = os.path.join("./"+out_path,pdb_name+"_loop_docking_config.txt")
-    with open(new_config,"w") as f:
-        f.write("center_x = {}\ncenter_y = {}\ncenter_z = {}\n".format(center[0],center[1],center[2]))
-        f.write("size_x = {}\nsize_y = {}\nsize_z = {}\n".format(size[0],size[1],size[2]))
-        f.write("thread = 8000\n")
-        f.write("receptor = {}\nligand = {}\n".format("./"+protein_path, "./"+out_ligand_path))
-        f.write("out = {}\nseed = {}\nnum_modes = 36\n".format(os.path.join("./"+out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt"), seed))
-        vina_out = os.path.join("./"+out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt")
-    return new_config, vina_out
-
-def get_gpu_docking_config_with_smaller_boxsize(protein_path, out_ligand_path, out_path, pdb_name, idx, loop_num, seed, pocket_size = 30, mode = "32"):
-    center_max = [-1e4,-1e4,-1e4]
-    center_min = [1e4,1e4,1e4]
-    center = [0,0,0]
-    size = [0,0,0]
-    ori_coords = get_coor_from_pdbqt(protein_path)
-    for co in ori_coords:
-        for i in range(3):
-            center_max[i] = max(center_max[i], co[i])
-            center_min[i] = min(center_min[i], co[i])
-    for i in range(3):
-        center[i] = (center_max[i] + center_min[i]) / 2
-        size[i] = (center_max[i] - center_min[i])-10
-
-    new_config = os.path.join("./"+out_path,pdb_name+"_loop_docking_config.txt")
-    with open(new_config,"w") as f:
-        f.write("center_x = {}\ncenter_y = {}\ncenter_z = {}\n".format(center[0],center[1],center[2]))
-        f.write("size_x = {}\nsize_y = {}\nsize_z = {}\n".format(min(size[0],20),min(size[1],20),min(size[2],20)))
-        f.write("thread = 8000\n")
-        f.write("receptor = {}\nligand = {}\n".format("./"+protein_path, "./"+out_ligand_path))
-        f.write("out = {}\nseed = {}\nnum_modes = 1\n".format(os.path.join("./"+out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt"), seed))
-        vina_out = os.path.join("./"+out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt")
-    return new_config, vina_out
 
 
 def pdb2pdbqt(protein_path,ligand_path, remove_ligand=False, remove_protein=False):
@@ -657,60 +390,6 @@ def pdb2pdbqt(protein_path,ligand_path, remove_ligand=False, remove_protein=Fals
             ligand_path = out_ligand_path
 
 
-    return protein_path, ligand_path
-
-def first_docking(protein_path, ligand_path, out_path, pdb_name, seed):
-    with time_limit(300):
-        out_protein_path, out_ligand_path = pdb2pdbqt(protein_path, ligand_path, remove_ligand=True)
-        new_config, vina_out = get_first_docking_config(out_protein_path, out_ligand_path, out_path, pdb_name, seed)
-        vina_path = "your vina path" #like ./vina/vina
-        os.system(f"{vina_path} --config {new_config}  > {out_path}/{pdb_name}_first_docking_ligand_vina_score_out.log")
-        states_path = split_pdbqt_file(vina_out)
-        os.remove(vina_out)
-        return states_path, out_protein_path
-
-def loop_docking(protein_path_list, ligand_path, out_path, loop_num, pdb_name, seed):
-    with time_limit(300):
-        _, out_ligand_path = pdb2pdbqt(None, ligand_path, remove_ligand=True)
-        log_paths = []
-        vina_out_path = []
-        for idx, protein_path in enumerate(protein_path_list):
-            new_config, vina_out = get_loop_docking_config(protein_path, out_ligand_path, out_path, pdb_name, idx, loop_num, seed)
-            vina_out_path.append(vina_out)
-            vina_path = "your vina path" #like ./vina/vina
-            os.system(f"{vina_path} --config {new_config}  > {out_path}/{pdb_name}_loop_{loop_num}_{idx}_docking_ligand_vina_score_out.log")
-            log_paths.append(f"{out_path}/{pdb_name}_loop_{loop_num}_{idx}_docking_ligand_vina_score_out.log")
-        rank_num_list, vina_score_max = log2rank(log_paths, out_path, loop_num)
-        states_path = []
-        for i in rank_num_list:
-            (quotient, remainder) = divmod(int(i),6)
-            states_path.append(split_pdbqt_file_inloop(vina_out_path[quotient], remainder+1))
-        for path in vina_out_path:
-            os.remove(path)
-
-        return states_path, vina_score_max
-    
-def protein_docking(protein_path, ligand_path, out_path, pdb_name, seed, idx):
-    loop_num = str(0)
-    with time_limit(300):
-        out_protein_path, out_ligand_path = pdb2pdbqt(protein_path, ligand_path, remove_ligand=True)
-        new_config, vina_out = get_loop_docking_config(protein_path, out_ligand_path, out_path, pdb_name, idx, loop_num, seed)
-        vina_path = "your vina path" #like ./vina/vina
-        os.system(f"{vina_path} --config {new_config}  > {out_path}/{pdb_name}_{loop_num}_{idx}_docking_ligand_vina_score_out.log")
-        states_path = split_pdbqt_file(vina_out)
-        os.remove(vina_out)
-        return states_path, out_protein_path
-
-def new_docking(protein_path, ligand_path, out_path, loop_num, pdb_name, seed, idx):
-    # loop_num = str(0)
-    with time_limit(300):
-        out_protein_path, out_ligand_path = pdb2pdbqt(protein_path, ligand_path, remove_ligand=True)
-        new_config, vina_out = get_new_docking_config(protein_path, out_ligand_path, out_path, pdb_name, idx, loop_num, seed)
-        vina_path = "your vina path" #like ./vina/vina
-        os.system(f"{vina_path} --config {new_config}  > {out_path}/{pdb_name}_{loop_num}_{idx}_docking_ligand_vina_score_out.log")
-        states_path = split_pdbqt_file(vina_out)
-        os.remove(vina_out)
-        return states_path, out_protein_path
     
 def gnina_docking(protein_path, ligand_path, out_path, loop_num, pdb_name, seed, idx):
     with time_limit(300):
@@ -720,52 +399,6 @@ def gnina_docking(protein_path, ligand_path, out_path, loop_num, pdb_name, seed,
         states_path = split_pdbqt_file(docking_ligand)
         return states_path, protein_path
         
-
-def gpu_docking(protein_path, ligand_path, out_path, loop_num, pdb_name, seed, idx):
-    with time_limit(300):
-        out_protein_path, out_ligand_path = pdb2pdbqt(protein_path, ligand_path, remove_ligand=True)
-        vina_path = "your vina-GPU path" #like ./Vina-GPU-2.0/Vina-GPU+/Vina-GPU"
-        new_config, vina_out = get_gpu_docking_config(protein_path, out_ligand_path, out_path, pdb_name, idx, loop_num, seed)
-        os.chdir("your vina-GPU dir path") #like ./Vina-GPU-2.0/Vina-GPU+
-        os.system(f"{vina_path} --config {new_config}  > ./{out_path}/{pdb_name}_{loop_num}_{idx}_docking_ligand_vina_score_out.log")
-        states_path = split_pdbqt_file(vina_out)
-        os.remove(vina_out)
-        return states_path, out_protein_path
-    
-def gpu_docking_baseline(protein_path, ligand_path, out_path, loop_num, pdb_name, seed, idx):
-    with time_limit(300):
-        out_protein_path, out_ligand_path = pdb2pdbqt(protein_path, ligand_path, remove_ligand=True)
-        vina_path = "your vina-GPU path" #like ./Vina-GPU-2.0/Vina-GPU+/Vina-GPU"
-        new_config, vina_out = get_gpu_docking_baseline_config(protein_path, out_ligand_path, out_path, pdb_name, idx, loop_num, seed)
-        os.chdir("your vina-GPU dir path") #like ./Vina-GPU-2.0/Vina-GPU+
-        os.system(f"{vina_path} --config {new_config}  > ./{out_path}/{pdb_name}_{loop_num}_{idx}_docking_ligand_vina_score_out.log")
-        states_path = split_pdbqt_file(vina_out)
-        os.remove(vina_out)
-        return states_path, out_protein_path
-
-def gpu_docking_baseline_with_ligand_boxsize(protein_path, ligand_path, ori_LIG_pdb_file, out_path, loop_num, pdb_name, seed, idx):
-    with time_limit(300):
-        out_protein_path, out_ligand_path = pdb2pdbqt(protein_path, ligand_path, remove_ligand=True)
-        vina_path = "your vina-GPU path" #like ./Vina-GPU-2.0/Vina-GPU+/Vina-GPU"
-        new_config, vina_out = get_gpu_docking_baseline_config_with_ligand_boxsize(protein_path, out_ligand_path, ori_LIG_pdb_file, out_path, pdb_name, idx, loop_num, seed)
-        os.chdir("your vina-GPU dir path") #like ./Vina-GPU-2.0/Vina-GPU+
-        os.system(f"{vina_path} --config {new_config}  > ./{out_path}/{pdb_name}_{loop_num}_{idx}_docking_ligand_vina_score_out.log")
-        states_path = split_pdbqt_file(vina_out)
-        os.remove(vina_out)
-        return states_path, out_protein_path
-    
-def gpu_docking_with_ligand_boxsize(protein_path, ligand_path, ori_LIG_pdb_file, out_path, loop_num, pdb_name, seed, idx):
-    # loop_num = str(0)
-    with time_limit(300):
-        out_protein_path, out_ligand_path = pdb2pdbqt(protein_path, ligand_path, remove_ligand=True)
-        
-        vina_path = "your vina-GPU path" #like ./Vina-GPU-2.0/Vina-GPU+/Vina-GPU"
-        new_config, vina_out = get_gpu_docking_config_with_ligand_boxsize(protein_path, out_ligand_path, ori_LIG_pdb_file, out_path, pdb_name, idx, loop_num, seed)
-        os.chdir("your vina-GPU dir path") #like ./Vina-GPU-2.0/Vina-GPU+
-        os.system(f"{vina_path} --config {new_config}  > ./{out_path}/{pdb_name}_{loop_num}_{idx}_docking_ligand_vina_score_out.log")
-        states_path = split_pdbqt_file(vina_out)
-        os.remove(vina_out)
-        return states_path, out_protein_path
     
 def gpu_docking_with_ligand_boxsize_sdf(protein_path, ligand_path, ori_LIG_sdf_file, out_path, loop_num, pdb_name, seed, idx):
     # loop_num = str(0)
@@ -779,28 +412,6 @@ def gpu_docking_with_ligand_boxsize_sdf(protein_path, ligand_path, ori_LIG_sdf_f
         os.remove(vina_out)
         return states_path, out_protein_path
 
-def gpu_docking_flex_with_ligand_boxsize_sdf(rigid_protein_file, flex_protein_file, ligand_path, ori_LIG_sdf_file, out_path, loop_num, pdb_name, seed, idx):
-    with time_limit(300):
-        out_protein_path, out_ligand_path = pdb2pdbqt(rigid_protein_file, ligand_path, remove_ligand=True)
-        vina_path = "your vina-GPU path" #like ./Vina-GPU-2.0/Vina-GPU+/Vina-GPU"
-        new_config, vina_out = get_gpu_docking_flex_config_with_ligand_boxsize_sdf(rigid_protein_file, flex_protein_file, out_ligand_path, ori_LIG_sdf_file, out_path, pdb_name, idx, loop_num, seed)
-        os.chdir("your vina-GPU dir path") #like ./Vina-GPU-2.0/Vina-GPU+
-        os.system(f"{vina_path} --config {new_config}  > ./{out_path}/{pdb_name}_{loop_num}_{idx}_docking_ligand_vina_score_out.log")
-        states_path = split_pdbqt_file(vina_out)
-        os.remove(vina_out)
-        return states_path, out_protein_path
-
-def gpu_docking_with_smaller_boxsize(protein_path, ligand_path, out_path, loop_num, pdb_name, seed, idx):
-    # loop_num = str(0)
-    with time_limit(300):
-        out_protein_path, out_ligand_path = pdb2pdbqt(protein_path, ligand_path, remove_ligand=True)
-        vina_path = "your vina-GPU path" #like ./Vina-GPU-2.0/Vina-GPU+/Vina-GPU"
-        new_config, vina_out = get_gpu_docking_config_with_smaller_boxsize(protein_path, out_ligand_path, out_path, pdb_name, idx, loop_num, seed)
-        os.chdir("your vina-GPU dir path") #like ./Vina-GPU-2.0/Vina-GPU+
-        os.system(f"{vina_path} --config {new_config}  > ./{out_path}/{pdb_name}_{loop_num}_{idx}_docking_ligand_vina_score_out.log")
-        states_path = split_pdbqt_file(vina_out)
-        os.remove(vina_out)
-        return states_path, out_protein_path
 
 def log2rank(log_paths, out_path, loop_num):
     num = 0
@@ -869,7 +480,7 @@ def get_coordinates_from_pdb(pdb_file):
 
 def get_coor_from_pdbqt(ligfile: str) -> dict:
     '''
-    Get coordinates of the atoms in the ligand from a pdb file.
+    Get coordinates of the atoms in the ligand from a pdbqt file.
     
     Args:
       ligfile (str): the pdbqt file of the ligand
@@ -950,21 +561,6 @@ def split_pdb_file(file_path):
             f_out.write("".join(state_lines))
     return states_path
 
-def split_pdbqt_file_inloop(file_path, model_num):
-
-    output_file = f"{file_path[:-6]}_{model_num}.pdbqt"
-    with open(file_path) as f_in, open(output_file, 'w') as f_out:
-        current_model = None
-        for line in f_in:
-            if line.startswith('MODEL'):
-                current_model = int(line.split()[1])
-                if current_model != model_num:
-                    continue
-            elif line.startswith('ENDMDL'):
-                current_model = None
-            elif current_model == model_num:
-                f_out.write(line)
-    return output_file
 
 def read_pdbqt(filename):
     with open(filename, "r") as f:
@@ -1013,42 +609,7 @@ def extract_protein_packing_state(protein_path):
     os.remove(protein_path)
     return new_protein_path
 
-def extract_ligand_docking_state(ligand_sdf_path, loop_num):
-    folder_path = os.path.dirname(ligand_sdf_path)
-    new_ligand_path = []
-    PDBID = ligand_sdf_path.split("/")[-1].split("_")[0]
-    with open(ligand_sdf_path, 'r') as f:
-        lines = f.readlines()
-    conformer_count = 0
-    for i, line in enumerate(lines):
-        if PDBID in line :
-            conformer_count += 1
-            out_filename = f'{folder_path}/loop_{str(loop_num)}_conformer_{conformer_count}.sdf'
-            out_file = open(out_filename, 'w')
-        out_file.write(line)
-        if '$$$$' in line:
-            out_file.close()
-            new_ligand_path.append(out_filename)
-    return new_ligand_path
 
-def extract_ligand_docking_state_inloop(ligand_sdf_path, loop_num, packing_num):
-    folder_path = os.path.dirname(ligand_sdf_path)
-    new_ligand_path = []
-    PDBID = ligand_sdf_path.split("/")[-1].split("_")[0]
-    with open(ligand_sdf_path, 'r') as f:
-        lines = f.readlines()
-    conformer_count = 0
-    for i, line in enumerate(lines):
-        if PDBID in line :
-            conformer_count += 1
-            out_filename = f'{folder_path}/loop_{str(loop_num)}_packing_{packing_num}_conformer_{conformer_count}.sdf'
-            out_file = open(out_filename, 'w')
-        out_file.write(line)
-        if '$$$$' in line:
-            out_file.close()
-            new_ligand_path.append(out_filename)
-
-    return new_ligand_path
 
 def get_config(out_protein_path, out_ligand_path, out_path, pdb_name, original_name, seed, normal_pocket = False, pocket_size = 30, mode = "32"):
     ori_coords = get_coor_from_pdbqt(out_protein_path)
@@ -1076,69 +637,7 @@ def get_config(out_protein_path, out_ligand_path, out_path, pdb_name, original_n
     return new_config
 
 
-def get_mol_coords_from_sdf(sdf_path):
-    mol_sdf = Chem.SDMolSupplier(sdf_path)[0]
-    if mol_sdf == None:
-        mol2_path = sdf_path.replace(".sdf", ".mol2")
-        mol_sdf = Chem.MolFromMol2File(mol2_path)
-        if mol_sdf == None:
-            mol_path = sdf_path.replace(".sdf", ".mol")
-            mol_sdf = Chem.MolFromMolFile(mol_path,sanitize= False)
-            if mol_sdf == None:
-                lig_pdb = mol2_path.replace("_ligand.mol2", "_LIG.pdb")
-                mol_sdf = Chem.MolFromPDBFile(lig_pdb, sanitize=True, removeHs=True) 
-    mol_sdf = Chem.RemoveHs(mol_sdf)
-    sdf_conf = mol_sdf.GetConformer()
-    sdf_coords = sdf_conf.GetPositions()
-    sdf_coords = np.array(sdf_coords).reshape(-1, 3)
-    return mol_sdf, sdf_coords
 
-def get_mol_coords_from_pdb(pdb_path):
-    mol = Chem.MolFromPDBFile(pdb_path, sanitize=True, removeHs=True)
-    mol = Chem.RemoveHs(mol)
-    mol_conf = mol.GetConformer()
-    coords = mol_conf.GetPositions()
-    coords = np.array(coords).reshape(-1, 3)
-    return mol, coords
-
-def get_mol_coords_from_mol2(path):
-    file_extensions = [".pdb", ".mol2", ".mol", ".sdf", ".pdbqt"]
-    mol = None
-    for ext in file_extensions:
-        try:
-            if ext ==".pdb":
-                pdb_path = path.replace(".mol2", ".pdb")
-                mol = Chem.MolFromPDBFile(pdb_path, sanitize=True, removeHs=True)
-            elif ext == ".mol2":
-                mol = Chem.MolFromMol2File(path)
-            elif ext == ".mol":
-                mol_path = path.replace(".mol2", ".mol")
-                mol = Chem.MolFromMolFile(mol_path)
-            elif ext == ".sdf":
-                sdf_path = path.replace(".mol2", ".sdf")
-                mol = Chem.SDMolSupplier(sdf_path)[0]
-            elif ext == ".pdbqt":
-                pdbqt_path = path.replace(".mol2", ".pdbqt")
-                mol = Chem.MolFromPDBFile(pdbqt_path, sanitize=True, removeHs=True) 
-            if mol is not None:
-                mol = Chem.RemoveHs(mol)
-                break
-        except:
-            continue
-
-    conf = mol.GetConformer()
-    coords = conf.GetPositions()
-    coords = np.array(coords).reshape(-1, 3)
-    return mol, coords
-
-def get_mol_coords_from_pdbqt(pdbqt_path):
-    with open(pdbqt_path, 'r') as f:
-        pdbqt_block = f.read()
-    mol_pdbqt = Chem.MolFromPDBBlock(pdbqt_block, sanitize=False)
-    pdbqt_conf = mol_pdbqt.GetConformer()
-    pdbqt_coords = pdbqt_conf.GetPositions()
-    pdbqt_coords = np.array(pdbqt_coords).reshape(-1, 3)
-    return mol_pdbqt, pdbqt_coords
 
 def read_first_docking_log(log_path):
     with open(log_path, 'r') as f:
@@ -1168,41 +667,7 @@ def read_first_docking_gnina_log(log_path):
                         ignore_index=True)
     return df
 
-def get_center_coords_from_sdf(sdf_path):
-    suppl = Chem.SDMolSupplier(sdf_path)
-    mol = suppl[0]
-    if mol == None:
-        mol2_path = sdf_path.replace(".sdf", ".mol2")
-        mol = Chem.MolFromMol2File(mol2_path)
-        if mol == None:
-            lig_pdb = mol2_path.replace("_ligand.mol2", "_LIG.pdb")
-            mol = Chem.MolFromPDBFile(lig_pdb, sanitize=True, removeHs=True) 
-    coords = []
-    conf = mol.GetConformer()
-    for i in range(mol.GetNumAtoms()):
-        pos = conf.GetAtomPosition(i)
-        coords.append([pos.x, pos.y, pos.z])
-    center = list(map(lambda x: sum(x)/len(x), zip(*coords)))
-    
-    return center
 
-def get_center_coords_from_mol2(mol2_path):
-
-    mol = Chem.MolFromMol2File(mol2_path, sanitize=False)
-    if mol == None:
-        sdf_path = mol2_path.replace(".mol2", ".sdf")
-        mol = Chem.SDMolSupplier(sdf_path)[0]
-        if mol == None:
-            lig_pdb = mol2_path.replace("_ligand.mol2", "_LIG.pdb")
-            mol = Chem.MolFromPDBFile(lig_pdb, sanitize=True, removeHs=True) 
-    coords = []
-    conf = mol.GetConformer()
-    for i in range(mol.GetNumAtoms()):
-        pos = conf.GetAtomPosition(i)
-        coords.append([pos.x, pos.y, pos.z])
-    center = list(map(lambda x: sum(x)/len(x), zip(*coords)))
-
-    return center
 
 def restore_pdb(packing_result, full_protein_path):
     parser = PDBParser()
