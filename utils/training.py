@@ -4,13 +4,26 @@ import numpy as np
 from torch_geometric.loader import DataLoader
 from tqdm import tqdm
 
-from confidence.dataset import ListDataset
+from torch_geometric.data import Dataset, HeteroData
 from utils import so3, torus
 # import torus
 from utils.sampling import randomize_position, sampling
 import torch
 from utils.diffusion_utils import get_t_schedule
 from utils.utils import kabsch_rmsd
+
+
+
+class ListDataset(Dataset):
+    def __init__(self, list):
+        super().__init__()
+        self.data_list = list
+
+    def len(self) -> int:
+        return len(self.data_list)
+
+    def get(self, idx: int) -> Data:
+        return self.data_list[idx]
 
 def loss_function(side_pred, data, t_to_sigma, device, tr_weight=1, rot_weight=1,
                   tor_weight=1, apply_mean=True, no_torsion=False):
