@@ -18,8 +18,9 @@ from utils.sampling import randomize_position, sampling
 from utils.utils import get_model, get_symmetry_rmsd, remove_all_hs, read_strings_from_txt, kabsch_rmsd, ExponentialMovingAverage
 from utils.visualise import PDBFile
 from tqdm import tqdm
+import warnings
+warnings.filterwarnings("ignore")
 
-RDLogger.DisableLog('rdApp.*')
 import yaml
 
 cache_name = datetime.now().strftime('date%d-%m_time%H-%M-%S.%f')
