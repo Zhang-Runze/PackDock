@@ -167,7 +167,7 @@ def inference_epoch(model, complex_graphs, device, t_to_sigma, args):
 
     for orig_complex_graph in tqdm(loader):
         data_list = [copy.deepcopy(orig_complex_graph)]
-        randomize_position(data_list, args.no_torsion, False, args.tr_sigma_max)
+        randomize_position(data_list, args.no_torsion, False)
 
         predictions_list = None
         failed_convergence_counter = 0
