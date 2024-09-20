@@ -127,7 +127,7 @@ for idx, orig_complex_graph in tqdm(enumerate(test_loader)):
     while not success:
         success = 1
         data_list = [copy.deepcopy(orig_complex_graph) for _ in range(N)]
-        randomize_position(data_list, score_model_args.no_torsion, args.no_random, score_model_args.tr_sigma_max)
+        randomize_position(data_list, score_model_args.no_torsion, args.no_random)
 
         pdb = None
         if args.save_visualisation:
