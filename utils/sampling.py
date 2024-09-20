@@ -7,7 +7,7 @@ from utils.torsion import modify_conformer_torsion_angles
 from scipy.spatial.transform import Rotation as R
 
 
-def randomize_position(data_list, no_torsion, no_random, tr_sigma_max):
+def randomize_position(data_list, no_torsion, no_random):
     for complex_graph in data_list:
         side_updates = np.random.uniform(low=-np.pi, high=np.pi, size=complex_graph.tor_mask.sum())
         complex_graph['atom'].pos = \
