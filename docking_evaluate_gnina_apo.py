@@ -29,7 +29,8 @@ from datasets.process_mols import parse_pdb_from_path, read_molecule, extract_re
 from utils.visualise import PDBFile
 from tqdm import tqdm
 
-RDLogger.DisableLog('rdApp.*')
+import warnings
+warnings.filterwarnings("ignore")
 import yaml
 from rdkit import Chem
 from rdkit.Chem import AllChem
