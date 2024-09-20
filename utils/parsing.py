@@ -54,15 +54,6 @@ def parse_train_args():
     parser.add_argument('--esm_embeddings_path', type=str, default=None, help='If this is set then the LM embeddings at that path will be used for the receptor features')
 
     # Diffusion
-    parser.add_argument('--tr_weight', type=float, default=0.33, help='Weight of translation loss')
-    parser.add_argument('--rot_weight', type=float, default=0.33, help='Weight of rotation loss')
-    parser.add_argument('--tor_weight', type=float, default=0.33, help='Weight of torsional loss')
-    parser.add_argument('--rot_sigma_min', type=float, default=0.1, help='Minimum sigma for rotational component')
-    parser.add_argument('--rot_sigma_max', type=float, default=1.65, help='Maximum sigma for rotational component')
-    parser.add_argument('--tr_sigma_min', type=float, default=0.1, help='Minimum sigma for translational component')
-    parser.add_argument('--tr_sigma_max', type=float, default=30, help='Maximum sigma for translational component')
-    parser.add_argument('--tor_sigma_min', type=float, default=0.0314, help='Minimum sigma for torsional component')
-    parser.add_argument('--tor_sigma_max', type=float, default=3.14, help='Maximum sigma for torsional component')
 
     parser.add_argument('--side_sigma_min', type=float, default=0.0314, help='Minimum sigma for torsional component')
     parser.add_argument('--side_sigma_max', type=float, default=3.14, help='Maximum sigma for torsional component')
