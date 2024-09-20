@@ -18,6 +18,8 @@ from datasets.pdbbind import construct_loader, construct_protein_loader
 from utils.parsing import parse_train_args
 from utils.training import train_epoch, test_epoch, loss_function, inference_epoch
 from utils.utils import save_yaml_file, get_optimizer_and_scheduler, get_model, ExponentialMovingAverage
+import warnings
+warnings.filterwarnings("ignore")
 
 
 def train(args, model, optimizer, scheduler, ema_weights, train_loader, val_loader, t_to_sigma, run_dir):
