@@ -592,45 +592,39 @@ class PDBprotein(Dataset):
                 print(e)
                 return [], []
 
-            ligs = []
-            lig = Chem.MolFromMol2File("./data/PDBBind_processed/1a0q/1a0q_ligand.mol2", sanitize=False, removeHs=False)
-            ligs.append(lig)
+
         complex_graphs = []
         failed_indices = []
-        for i, lig in enumerate(ligs):
-            if self.max_lig_size is not None and lig.GetNumHeavyAtoms() > self.max_lig_size:
-                print(f'Ligand with {lig.GetNumHeavyAtoms()} heavy atoms is larger than max_lig_size {self.max_lig_size}. Not including {name} in preprocessed data.')
-                continue
-            complex_graph = HeteroData()
-            complex_graph['name'] = name
-            try:
-                rec, rec_coords, c_alpha_coords, rotamer_idx, backbone_idx, physicochemistry, PSP19, n_coords, c_coords, lm_embeddings = extract_receptor_structure(copy.deepcopy(rec_model), lig, lm_embedding_chains=lm_embedding_chains)
-                if lm_embeddings is not None and len(c_alpha_coords) != len(lm_embeddings):
-                    print(f'LM embeddings for complex {name} did not have the right length for the protein. Skipping {name}.')
-                    failed_indices.append(i)
-                    continue
-                pocket_outside_num = get_pocket_outside_num(rec_coords)
-                pocket_outside_idx = [np.ones_like(arr) if i in pocket_outside_num else arr for i, arr in enumerate(backbone_idx)]
 
-                get_rec_graph(rec, pdb_mol, rec_coords, c_alpha_coords, rotamer_idx, backbone_idx, physicochemistry, PSP19, n_coords, c_coords, pocket_outside_num, pocket_outside_idx, complex_graph, rec_radius=self.receptor_radius,
-                                c_alpha_max_neighbors=self.c_alpha_max_neighbors, all_atoms=self.all_atoms,
-                                atom_radius=self.atom_radius, atom_max_neighbors=self.atom_max_neighbors, remove_hs=self.remove_hs, lm_embeddings=lm_embeddings)
-                get_lig_graph_with_matching(lig, complex_graph, self.popsize, self.maxiter, self.matching, self.keep_original,
-                                            self.num_conformers, remove_hs=self.remove_hs)
-            except Exception as e:
-                print(f'Skipping {name} because of the error:')
-                print(e)
+        complex_graph = HeteroData()
+        complex_graph['name'] = name
+        try:
+            rec, rec_coords, c_alpha_coords, rotamer_idx, backbone_idx, physicochemistry, PSP19, n_coords, c_coords, lm_embeddings = extract_receptor_structure(copy.deepcopy(rec_model), lig, lm_embedding_chains=lm_embedding_chains)
+            if lm_embeddings is not None and len(c_alpha_coords) != len(lm_embeddings):
+                print(f'LM embeddings for complex {name} did not have the right length for the protein. Skipping {name}.')
                 failed_indices.append(i)
-                continue
+
+            pocket_outside_num = get_pocket_outside_num(rec_coords)
+            pocket_outside_idx = [np.ones_like(arr) if i in pocket_outside_num else arr for i, arr in enumerate(backbone_idx)]
+
+            get_rec_graph(rec, pdb_mol, rec_coords, c_alpha_coords, rotamer_idx, backbone_idx, physicochemistry, PSP19, n_coords, c_coords, pocket_outside_num, pocket_outside_idx, complex_graph, rec_radius=self.receptor_radius,
+                            c_alpha_max_neighbors=self.c_alpha_max_neighbors, all_atoms=self.all_atoms,
+                            atom_radius=self.atom_radius, atom_max_neighbors=self.atom_max_neighbors, remove_hs=self.remove_hs, lm_embeddings=lm_embeddings)
+
+        except Exception as e:
+            print(f'Skipping {name} because of the error:')
+            print(e)
+            failed_indices.append(i)
 
 
-            protein_center = torch.mean(complex_graph['receptor'].pos, dim=0, keepdim=True)
-            complex_graph['receptor'].pos -= protein_center
-            if self.all_atoms:
-                complex_graph['atom'].pos -= protein_center
 
-            complex_graph.original_center = protein_center
-            complex_graphs.append(complex_graph)
+        protein_center = torch.mean(complex_graph['receptor'].pos, dim=0, keepdim=True)
+        complex_graph['receptor'].pos -= protein_center
+        if self.all_atoms:
+            complex_graph['atom'].pos -= protein_center
+
+        complex_graph.original_center = protein_center
+        complex_graphs.append(complex_graph)
         for idx_to_delete in sorted(failed_indices, reverse=True):
             del ligs[idx_to_delete]
         return complex_graphs, ligs
