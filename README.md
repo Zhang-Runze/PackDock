@@ -38,7 +38,7 @@ First run:
 Then proceed with further processing using [ADFR-Suite](https://ccsb.scripps.edu/adfr/downloads/) and OpenBabel.
 
 
-# Data preprocess
+# Model weights
 
 The model weights are available on [zenodo](https://zenodo.org/records/10851699).
 
