@@ -30,12 +30,18 @@ Then you need to install a ligand conformation sampling algorithm (such as [Auto
 It's worth noting that PackDock offers a highly general flexible docking strategy, capable of integrating any ligand conformation sampling algorithm develop yourself or you might choose to use. This implies that employing more  advanced ligand conformation sampling algorithms could potentially lead to unexpectedly impressive docking results.
 
 
-# data preprocess
+# Data preprocess
 First run:
 
     python get_pocket/get_pocket.py
     
 Then proceed with further processing using [ADFR-Suite](https://ccsb.scripps.edu/adfr/downloads/) and OpenBabel.
+
+
+# Data preprocess
+
+The model weights are available on [zenodo](https://zenodo.org/records/10851699).
+
 
 # Running PackPocket on your protein
 
