@@ -52,14 +52,50 @@ Protein pocket packing:
 Ligand based protein pocket packing:
 
     python -m evaluate_ligand_based_protein --run_name Ligand based protein pocket packing --inference_steps 20 --samples_per_complex 10 --batch_size 10 --actual_steps 20 --cache_path data/cacheTest_PDBBind --no_final_step_noise --data_dir data/PDBBind_processed --split_path data/splits/timesplit_test_no_rec_overlap --save_visualisation
-
+    
 # Running PackDock on your complex
 
-    python docking_evaluate_gnina_apo.py --rmsd
+(1) Prepare `input_csv`
 
-or
+Required columns: `protein_path, ligand_path, complex_id`
 
-    python docking_evaluate_vina_apo.py --rmsd
+`protein_path`: Path to the protein structure (typically .pdb, or a pre-extracted pocket PDB).
+
+`ligand_path`: Path to the ligand structure (.sdf/.pdb/.mol2/.mol supported).
+
+`complex_id`: Unique sample identifier(writes outputs to `--out_dir/<complex_id>/`).
+
+
+(2) 
+
+    python packdock_pipeline.py 
+          --input_csv /path/to/input.csv \
+          --out_dir results/packdock_run \
+          --protein_model_dir workdir/protein_model \
+          --model_dir workdir/complex_model \
+          --inference_steps 20 \
+          --batch_size 40 \
+          --stage1_packing_num 1 \
+          --stage3_packing_num 5 \
+          --docking_max_workers 1 \
+          --extract_pocket \
+          --pocket_radius 5.0 \
+
+(3) Key arguments
+
+|  Argument   | Default  |  Description  |
+|  ----  | ----  | ----  |
+| `--input_csv`  | (required) | Sample list with `protein_path`, `ligand_path`, `complex_id`. |
+| `--out_dir`  | `results/test` | Root folder for outputs, manifests, and scores. |
+| `--protein_model_dir`  | `workdir/protein_model` | Folder containing the ligand-free packing model. |
+| `--model_dir`  | `workdir/complex_model` | Folder containing the ligand-conditioned packing model. |
+| `--inference_steps`  | `20` | Diffusion sampling steps for packing. |
+| `--batch_size`  | `40` | Packing batch size. |
+| `--stage1_packing_num`  | `1` | ligand-free packing samples per input graph (Stage 1). |
+| `--stage3_packing_num`  | `5` | ligand-conditioned packing samples per graph (Stage 3). |
+| `--docking_max_workers`  | `1` | Parallel docking workers |
+| `--extract_pocket`  | `True` | Automatically extract the pocket around the ligand. |
+| `--pocket_radius`  | `5.0` | Pocket radius (Å) used for extraction. |
     
 
 # Retraining PackPocket
