@@ -70,9 +70,22 @@ def get_t_schedule(inference_steps):
 
 
 def set_time(complex_graphs, t, batchsize, all_atoms, device):
-    if complex_graphs['ligand'].num_nodes is not None:
-        complex_graphs['ligand'].node_t = {'t': t * torch.ones(complex_graphs['ligand'].num_nodes).to(device)}
-    complex_graphs['receptor'].node_t = {'t': t * torch.ones(complex_graphs['receptor'].num_nodes).to(device)}
-    complex_graphs.complex_t = {'t': t * torch.ones(batchsize).to(device)}
-    if all_atoms:
-        complex_graphs['atom'].node_t = {'t': t * torch.ones(complex_graphs['atom'].num_nodes).to(device)}
+    def _assign(ntype: str):
+        # Skip atoms when not requested
+        # if ntype == 'atom' and not all_atoms:
+        #     return
+        # Only proceed if this node type is actually in the graph
+        if ntype in complex_graphs.node_types:
+            n = complex_graphs[ntype].num_nodes
+            if n > 0:
+                complex_graphs[ntype].node_t = {
+                    't': torch.full((n,), fill_value=t, device=device)
+                }
+
+    _assign('receptor')
+    _assign('ligand')
+    _assign('atom')
+
+    complex_graphs.complex_t = {
+        't': torch.full((batchsize,), fill_value=t, device=device)
+    }
