@@ -569,6 +569,7 @@ def get_coor_from_pdbqt(ligfile: str) -> dict:
 
 
 def split_pdbqt_file(file_path):
+    file_path = os.path.abspath(file_path)
     with open(file_path) as f:
         lines = f.readlines()
 
@@ -578,7 +579,7 @@ def split_pdbqt_file(file_path):
     for line in lines:
         if line.startswith("MODEL"):
             if current_state is not None:
-                state_path = f"{file_path[:-6]}_{current_state}.pdbqt"
+                state_path = os.path.abspath(f"{file_path[:-6]}_{current_state}.pdbqt")
                 states_path.append(state_path)
                 with open(state_path, "w") as f_out:
                     f_out.write("".join(state_lines))
@@ -590,13 +591,15 @@ def split_pdbqt_file(file_path):
             state_lines.append(line)
 
     if current_state is not None:
-        state_path = f"{file_path[:-6]}_{current_state}.pdbqt"
+        state_path = os.path.abspath(f"{file_path[:-6]}_{current_state}.pdbqt")
         states_path.append(state_path)
         with open(state_path, "w") as f_out:
             f_out.write("".join(state_lines))
     return states_path
 
+
 def split_pdb_file(file_path):
+    file_path = os.path.abspath(file_path)
     with open(file_path) as f:
         lines = f.readlines()
 
@@ -606,7 +609,7 @@ def split_pdb_file(file_path):
     for line in lines:
         if line.startswith("MODEL"):
             if current_state is not None:
-                state_path = file_path   #f"{file_path[:-4]}.pdb"
+                state_path = os.path.abspath(file_path)  
                 states_path.append(state_path)
                 with open(state_path, "w") as f_out:
                     f_out.write("".join(state_lines))
@@ -618,7 +621,7 @@ def split_pdb_file(file_path):
             state_lines.append(line)
 
     if current_state is not None:
-        state_path = f"{file_path[:-4]}.pdb"
+        state_path = os.path.abspath(f"{file_path[:-4]}.pdb")
         states_path.append(state_path)
         with open(state_path, "w") as f_out:
             f_out.write("".join(state_lines))
