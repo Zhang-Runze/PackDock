@@ -93,7 +93,9 @@ def sampling(data_list, model, inference_steps, side_schedule, device, t_to_sigm
                 complex_graph_batch = complex_graph_batch.to(device)
                 if confidence_data_list is not None:
                     confidence_complex_graph_batch = next(confidence_loader).to(device)
-                    confidence_complex_graph_batch['ligand'].pos = complex_graph_batch['ligand'].pos
+                    # Only copy ligand position if both graphs have ligand
+                    if 'ligand' in complex_graph_batch and 'ligand' in confidence_complex_graph_batch:
+                        confidence_complex_graph_batch['ligand'].pos = complex_graph_batch['ligand'].pos
                     set_time(confidence_complex_graph_batch, 0, 0, 0, N, confidence_model_args.all_atoms, device)
                     confidence.append(confidence_model(confidence_complex_graph_batch))
                 else:
