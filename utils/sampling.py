@@ -67,9 +67,16 @@ def sampling(data_list, model, inference_steps, side_schedule, device, t_to_sigm
                 side_z = torch.zeros(side_score.shape) if no_random or (no_final_step_noise and t_idx == inference_steps - 1) \
                     else torch.normal(mean=0, std=1, size=side_score.shape)
                 side_perturb = (side_g ** 2 * dt_side * side_score.cpu() + side_g * np.sqrt(dt_side) * side_z).numpy()
-            torsions_per_protein = side_perturb.shape[0] // b
-            new_data_list.extend([modify_conformer(complex_graph,side_perturb[i * torsions_per_protein:(i + 1) * torsions_per_protein])
-                        for i, complex_graph in enumerate(complex_graph_batch.to('cpu').to_data_list())])
+            
+            # if counts_ok and sum(torsion_counts) == int(side_perturb.shape[0]):
+            p = 0
+            for g, Ti in zip(graphs_cpu, torsion_counts):
+                sl = side_perturb[p:p+Ti]
+                new_data_list.append(modify_conformer(g, sl))
+                p += Ti
+            # torsions_per_protein = side_perturb.shape[0] // b
+            # new_data_list.extend([modify_conformer(complex_graph,side_perturb[i * torsions_per_protein:(i + 1) * torsions_per_protein])
+            #             for i, complex_graph in enumerate(complex_graph_batch.to('cpu').to_data_list())])
         data_list = new_data_list
 
         if visualization_list is not None:
