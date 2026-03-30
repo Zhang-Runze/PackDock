@@ -46,8 +46,13 @@ def sampling(data_list, model, inference_steps, side_schedule, device, t_to_sigm
 
         for complex_graph_batch in loader:
             b = complex_graph_batch.num_graphs
+            graphs_cpu = complex_graph_batch.to('cpu').to_data_list()
+            torsion_counts = [ _torsion_count_from_graph(g) for g in graphs_cpu ]
+            counts_ok = all(c >= 0 for c in torsion_counts)
+
             complex_graph_batch = complex_graph_batch.to(device)
 
+            
             side_sigma = t_to_sigma(t_side)
 
             set_time(complex_graph_batch, t_side, b, model_args.all_atoms, device)
