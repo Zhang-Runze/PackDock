@@ -3,9 +3,9 @@
 
 This repo contains a PyTorch implementation for the paper  PackDock: a Diffusion Based Side Chain Packing Model for Flexible Protein-Ligand Docking 
 
-If you have any question, feel free to open an issue or reach out to us: [zhangrunze@simm.ac.cn](zhangrunze@simm.ac.cn)✉️.
+If you have any questions, please open an issue or contact [Runze Zhang](runze.zhang@icm.uu.se)✉️.
 
-by [Runze Zhang](https://github.com/Zhang-Runze)
+
 # PackDock Overview
 ![](https://github.com/Zhang-Runze/PackDock/blob/main/figs/Method%20Overview.jpg)
 
@@ -25,6 +25,7 @@ This is an example for how to set up a working conda environment to run the code
     conda install pytorch pytorch-cuda=11.7 -c pytorch -c nvidia
     pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-1.13.0+cu117.html
     python -m pip install openbabel PyYAML scipy "networkx[default]" biopython rdkit-pypi e3nn spyrmsd pandas biopandas
+    conda install -c conda-forge openmm pdbfixer
     
 Then you need to install a ligand conformation sampling algorithm (such as [AutoDock-Vina](https://github.com/ccsb-scripps/AutoDock-Vina), [gnina](https://github.com/gnina/gnina), [Vina-GPU](https://github.com/DeltaGroupNJUPT/Vina-GPU-2.0), etc.).
 It's worth noting that PackDock offers a highly general flexible docking strategy, capable of integrating any ligand conformation sampling algorithm develop yourself or you might choose to use. This implies that employing more  advanced ligand conformation sampling algorithms could potentially lead to unexpectedly impressive docking results.
@@ -96,10 +97,12 @@ Required columns: `protein_path, ligand_path, complex_id`
 | `--docking_max_workers`  | `1` | Parallel docking workers |
 | `--extract_pocket`  | `True` | Automatically extract the pocket around the ligand. |
 | `--pocket_radius`  | `5.0` | Pocket radius (Å) used for extraction. |
+| `--relax-stage1`  | `enabled` | Run OpenMM relaxation after Stage 1 |
+| `--relax-stage3`  | `enabled` | Run OpenMM relaxation after Stage 3 |
     
 
 # Retraining PackPocket
-Download the data([BC40](https://zenodo.org/) or [PDBbind](https://zenodo.org/records/6408497)) and place it as described in the "Dataset" section above.
+Download the data(BC40 or PDBbind and place it as described in the "Dataset" section above.
 
 ### Training a model yourself and using those weights
 Train the PackPocket:
