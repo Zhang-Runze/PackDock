@@ -369,33 +369,90 @@ def get_gpu_docking_config_with_ligand_boxsize_sdf(protein_path, out_ligand_path
 
 
 
+ADFR_PROT = "./ADFR_suite/bin/prepare_receptor"
+ADFR_LIG  = "./ADFR_suite/bin/prepare_ligand"
+def pdb2pdbqt(protein_path, ligand_path, remove_ligand=False, remove_protein=False, work_dir=None):
 
+    def _prepare_protein(p: str | None) -> str | None:
+        if not p:
+            return None
+        p = os.path.abspath(p)
+        if p.lower().endswith(".pdbqt"):
+            return p
 
-def pdb2pdbqt(protein_path,ligand_path, remove_ligand=False, remove_protein=False):
+        final_out = str(Path(p).with_suffix(".pdbqt"))
+        if os.path.exists(final_out) and os.path.getsize(final_out) > 0:
+            return os.path.abspath(final_out)
 
-    if protein_path is not None:
-        if protein_path.endswith('.pdbqt') is not True:
-            protein_extension = os.path.splitext(protein_path)[1]  
-            ADFR_protein = "./ADFR_suite/bin/prepare_receptor"
-            out_protein_path = protein_path.replace(protein_extension, ".pdbqt")
-            os.system(f"{ADFR_protein} -r {protein_path} -o {out_protein_path} -e True -A 'hydrogens'")
-            if remove_protein:
-                os.remove(protein_path)
-            protein_path = out_protein_path
-    if ligand_path is not None:
-        if ligand_path.endswith('.pdbqt') is not True:
-            ligand_extension = os.path.splitext(ligand_path)[1]  
-            ADFR_ligand = "./ADFR_suite/bin/prepare_ligand"
-            remove_path = os.path.abspath(os.getcwd()) #like ./PackDock
-            os.system(f"mv {ligand_path} {remove_path}")
-            new_ligand_path = os.path.join(remove_path,ligand_path.split("/")[-1])
-            out_ligand_path = ligand_path.replace(ligand_extension, ".pdbqt")
-            os.system(f"{ADFR_ligand} -l {new_ligand_path} -o {out_ligand_path} -A 'hydrogens' ")
-            if remove_ligand:
-                os.remove(new_ligand_path)
-            ligand_path = out_ligand_path
+        tmp_out = f"{final_out}.tmp.{os.getpid()}_{uuid.uuid4().hex[:8]}"
+        cmd = [ADFR_PROT, "-r", p, "-o", tmp_out, "-e", "True", "-A", "hydrogens"]
+        try:
+            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if proc.returncode != 0:
+                print(f"[pdb2pdbqt] WARN protein: ADFR failed for {p}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}")
+        except Exception as e:
+            print(f"[pdb2pdbqt] ERROR protein: {e}")
 
+        try:
+            if os.path.exists(tmp_out):
+                os.replace(tmp_out, final_out) 
+        except Exception as e:
+            print(f"[pdb2pdbqt] WARN protein placing {final_out}: {e}")
 
+        if remove_protein:
+            try: os.remove(p)
+            except FileNotFoundError: pass
+            except Exception as e: print(f"[pdb2pdbqt] WARN remove_protein: {e}")
+
+        return os.path.abspath(final_out) if os.path.exists(final_out) else p
+
+    def _prepare_ligand(l: str | None) -> str | None:
+        if not l:
+            return None
+        l = os.path.abspath(l)
+        if l.lower().endswith(".pdbqt"):
+            return l
+
+        final_out = str(Path(l).with_suffix(".pdbqt"))
+        if os.path.exists(final_out) and os.path.getsize(final_out) > 0:
+            return os.path.abspath(final_out)
+
+        dest_dir = os.path.abspath(work_dir) if work_dir else os.path.abspath(os.getcwd())
+        stem, ext = Path(l).stem, Path(l).suffix
+        tmp_in = os.path.join(dest_dir, f"{stem}__{os.getpid()}_{uuid.uuid4().hex[:8]}{ext}")
+        try:
+            shutil.move(l, tmp_in)
+        except Exception:
+            tmp_in = l if os.path.exists(l) else tmp_in
+
+        tmp_out = str(Path(tmp_in).with_suffix(".pdbqt"))
+        cmd = [ADFR_LIG, "-l", tmp_in, "-o", tmp_out, "-A", "hydrogens"]
+        try:
+            proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+            if proc.returncode != 0:
+                print(f"[pdb2pdbqt] WARN ligand: ADFR failed for {l}\nstdout:\n{proc.stdout}\nstderr:\n{proc.stderr}")
+        except Exception as e:
+            print(f"[pdb2pdbqt] ERROR ligand: {e}")
+        try:
+            if os.path.exists(tmp_out):
+                os.replace(tmp_out, final_out)
+        except Exception as e:
+            print(f"[pdb2pdbqt] WARN ligand placing {final_out}: {e}")
+
+        if remove_ligand:
+            try:
+                if os.path.exists(tmp_in):
+                    os.remove(tmp_in)
+            except FileNotFoundError:
+                pass
+            except Exception as e:
+                print(f"[pdb2pdbqt] WARN remove_ligand tmp: {e}")
+
+        return os.path.abspath(final_out) if os.path.exists(final_out) else l
+
+    prot_out = _prepare_protein(protein_path)
+    lig_out  = _prepare_ligand(ligand_path)
+    return prot_out, lig_out
     
 def gnina_docking(protein_path, ligand_path, out_path, loop_num, pdb_name, seed, idx):
     with time_limit(300):
