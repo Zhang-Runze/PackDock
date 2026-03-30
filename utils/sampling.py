@@ -20,6 +20,18 @@ def randomize_position(data_list, no_torsion, no_random):
 def sampling(data_list, model, inference_steps, side_schedule, device, t_to_sigma, model_args,
              no_random=False, ode=False, visualization_list=None, confidence_model=None, confidence_data_list=None,
              confidence_model_args=None, batch_size=32, no_final_step_noise=False):
+    
+    def _torsion_count_from_graph(g) -> int:
+        mr = getattr(g, "mask_rotate", None)
+        if mr is None:
+            return -1
+        if torch.is_tensor(mr):
+            return int(mr.shape[0])
+        try:
+            return int(mr.shape[0])
+        except Exception:
+            return int(len(mr))
+        
     N = len(data_list)
 
     for t_idx in range(inference_steps):
