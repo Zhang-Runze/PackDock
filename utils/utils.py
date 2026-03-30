@@ -799,23 +799,65 @@ def calculate_center(coordinates):
     return [center_x, center_y, center_z]
 
 
-def get_pocket_outside_num(coords):
-    ori_coords = [atom_coords for residue_coords in coords for atom_coords in residue_coords]
+def get_pocket_outside_num(
+    coords: Sequence[Sequence[Sequence[float]]],
+    mode: str = "inference",
+    shrink: float = None,
+    min_keep: int = 1,
+):
+    if not coords:
+        return []
+    if shrink is None:
+        shrink = 1/3 if mode == "inference" else 1/5
+
+    ori_coords = [atom for residue in coords for atom in residue]
+    if not ori_coords:
+        return []
+
     center = calculate_center(ori_coords)
-    center_max = [max(coord) for coord in zip(*ori_coords)]
-    center_min = [min(coord) for coord in zip(*ori_coords)]
+    center_max = [max(v) for v in zip(*ori_coords)]
+    center_min = [min(v) for v in zip(*ori_coords)]
     size = [center_max[i] - center_min[i] for i in range(3)]
-    inner_size = [a - a / 3 for a in size] #inference
-    # inner_size = [a - a / 5 for a in size] #train
+
+    inner_size = [max(1e-6, a * (1 - shrink)) for a in size]
     inner_max = [center[i] + inner_size[i] / 2 for i in range(3)]
     inner_min = [center[i] - inner_size[i] / 2 for i in range(3)]
-    res_num = []
+
+    outside_idxs: List[int] = []
+    def atom_violation_dist(p):
+        dx = 0.0
+        if p[0] > inner_max[0]: dx = p[0] - inner_max[0]
+        elif p[0] < inner_min[0]: dx = inner_min[0] - p[0]
+        dy = 0.0
+        if p[1] > inner_max[1]: dy = p[1] - inner_max[1]
+        elif p[1] < inner_min[1]: dy = inner_min[1] - p[1]
+        dz = 0.0
+        if p[2] > inner_max[2]: dz = p[2] - inner_max[2]
+        elif p[2] < inner_min[2]: dz = inner_min[2] - p[2]
+        return sqrt(dx*dx + dy*dy + dz*dz)
+
+    residue_violation = [0.0] * len(coords)
+
     for residue_idx, residue_coords in enumerate(coords):
+        any_outside = False
+        worst = 0.0
         for atom_coords in residue_coords:
             if any(a > inner_max[i] or a < inner_min[i] for i, a in enumerate(atom_coords)):
-                res_num.append(residue_idx)
-                break
-    return res_num
+                any_outside = True
+            d = atom_violation_dist(atom_coords)
+            if d > worst:
+                worst = d
+        residue_violation[residue_idx] = worst
+        if any_outside:
+            outside_idxs.append(residue_idx)
+
+    total = len(coords)
+    if len(outside_idxs) >= total and min_keep > 0:
+        keep_candidates = sorted(range(total), key=lambda i: residue_violation[i])[:min(min_keep, total)]
+        keep_set = set(keep_candidates)
+        outside_idxs = [i for i in outside_idxs if i not in keep_set]
+
+    return outside_idxs
 
 
 def get_ligand_outside_num(coords,ligand_mol,cutoff):
