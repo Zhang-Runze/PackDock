@@ -454,9 +454,9 @@ def pdb2pdbqt(protein_path, ligand_path, remove_ligand=False, remove_protein=Fal
     lig_out  = _prepare_ligand(ligand_path)
     return prot_out, lig_out
     
-def gnina_docking(protein_path, ligand_path, out_path, loop_num, pdb_name, seed, idx):
+def gnina_docking(protein_path, ligand_path, ori_LIG_sdf_file, out_path, loop_num, pdb_name, seed, idx):
     with time_limit(300):
-        new_config, docking_ligand = get_gnina_docking_config(protein_path, ligand_path, out_path, pdb_name, idx, loop_num, seed)
+        new_config, docking_ligand = get_gnina_docking_config(protein_path, ligand_path, ori_LIG_sdf_file, out_path, pdb_name, idx, loop_num, seed)
         gnina_path = "your gnina path" #like ./gnina
         os.system(f"{gnina_path} --config {new_config}  > {out_path}/{pdb_name}_{loop_num}_{idx}_docking_ligand_gnina_score_out.log")
         states_path = split_pdbqt_file(docking_ligand)
