@@ -463,16 +463,16 @@ def gnina_docking(protein_path, ligand_path, ori_LIG_sdf_file, out_path, loop_nu
         return states_path, protein_path
         
     
-def gpu_docking_with_ligand_boxsize_sdf(protein_path, ligand_path, ori_LIG_sdf_file, out_path, loop_num, pdb_name, seed, idx):
-    # loop_num = str(0)
+def gpu_docking_with_ligand_boxsize_sdf(protein_path, ligand_path, ori_LIG_sdf_file, out_path, loop_num, pdb_name, seed, idx, vina_path):
     with time_limit(300):
         out_protein_path, out_ligand_path = pdb2pdbqt(protein_path, ligand_path, remove_ligand=True)
-        vina_path = "your vina-GPU path" #like ./Vina-GPU-2.0/Vina-GPU+/Vina-GPU"
-        new_config, vina_out = get_gpu_docking_config_with_ligand_boxsize_sdf(protein_path, out_ligand_path, ori_LIG_sdf_file, out_path, pdb_name, idx, loop_num, seed)
-        os.chdir("your vina-GPU dir path") #like ./Vina-GPU-2.0/Vina-GPU+
-        os.system(f"{vina_path} --config {new_config}  > ./{out_path}/{pdb_name}_{loop_num}_{idx}_docking_ligand_vina_score_out.log")
+        new_config, vina_out = get_gpu_docking_config_with_ligand_boxsize_sdf(out_protein_path, out_ligand_path, ori_LIG_sdf_file, out_path, pdb_name, idx, loop_num, seed)
+        log_file_path = os.path.abspath(os.path.join(out_path, f"{pdb_name}_{loop_num}_{idx}_docking_ligand_vina_score_out.log"))
+        os.chdir(os.path.dirname(vina_path))
+        os.system(f"{vina_path} --config {new_config}  > {log_file_path}")
         states_path = split_pdbqt_file(vina_out)
-        os.remove(vina_out)
+        if os.path.exists(vina_out):
+            os.remove(vina_out)
         return states_path, out_protein_path
 
 
