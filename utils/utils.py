@@ -1,5 +1,8 @@
 import os
 import subprocess
+import shutil
+import tempfile
+import uuid
 import warnings
 from datetime import datetime
 import signal
@@ -13,6 +16,9 @@ from rdkit.Chem import RemoveHs, MolToPDBFile ,AllChem
 from rdkit.Geometry import Point3D
 from torch_geometric.nn.data_parallel import DataParallel
 
+from math import sqrt
+from typing import List, Sequence
+from pathlib import Path
 from models.all_atom_score_model import TensorProductScoreModel as AAScoreModel
 from models.all_atom_score_model import TensorProduct_protein_ScoreModel
 from utils.diffusion_utils import get_timestep_embedding
@@ -299,19 +305,19 @@ def pdbqt2pdb(pdbqt_path, remove_source_file = False):
 
 
 
-def get_gnina_docking_config(protein_path, out_ligand_path, out_path, pdb_name, idx, loop_num, seed, pocket_size = 30, mode = "32"):
-    vina_out = os.path.join(out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt")
-    new_config = os.path.join(out_path,pdb_name+"_loop_docking_config.txt")
+def get_gnina_docking_config(protein_path, out_ligand_path, ori_LIG_sdf_file, out_path, pdb_name, idx, loop_num, seed, pocket_size = 30, mode = "32"):
+    vina_out = os.path.abspath(os.path.join(out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt"))
+    new_config = os.path.abspath(os.path.join(out_path,pdb_name+"_loop_docking_config.txt"))
     with open(new_config,"w") as f:
-        
-        f.write("autobox_ligand = {}\nautobox_add = 4\n".format(out_ligand_path))
+
+        f.write("autobox_ligand = {}\nautobox_add = 4\n".format(os.path.abspath(ori_LIG_sdf_file)))
         if mode in ['detail', 'balance']:
             f.write("search_mode = {}\n".format(mode))
         else:
             f.write("exhaustiveness = {}\n".format(mode.split('_')[0]))
-        f.write("receptor = {}\nligand = {}\n".format(protein_path, out_ligand_path))
+        f.write("receptor = {}\nligand = {}\n".format(os.path.abspath(protein_path), os.path.abspath(out_ligand_path)))
         f.write("out = {}\nseed = {}\nnum_modes = 1\n".format(vina_out, seed))
-        
+
     return new_config, vina_out
 
 
@@ -350,14 +356,14 @@ def get_gpu_docking_config_with_ligand_boxsize_sdf(protein_path, out_ligand_path
 
 
 
-    new_config = os.path.join("./"+out_path,pdb_name+"_loop_docking_config.txt")
+    new_config = os.path.abspath(os.path.join(out_path,pdb_name+"_loop_docking_config.txt"))
     with open(new_config,"w") as f:
         f.write("center_x = {}\ncenter_y = {}\ncenter_z = {}\n".format(center_x,center_y,center_z))
         f.write("size_x = {}\nsize_y = {}\nsize_z = {}\n".format(size_x,size_y,size_z))
         f.write("thread = 8000\n")
-        f.write("receptor = {}\nligand = {}\n".format("./"+protein_path, "./"+out_ligand_path))
-        f.write("out = {}\nseed = {}\nnum_modes = 1\n".format(os.path.join("./"+out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt"), seed))
-        vina_out = os.path.join("./"+out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt")
+        f.write("receptor = {}\nligand = {}\n".format(os.path.abspath(protein_path), os.path.abspath(out_ligand_path)))
+        f.write("out = {}\nseed = {}\nnum_modes = 1\n".format(os.path.abspath(os.path.join(out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt")), seed))
+        vina_out = os.path.abspath(os.path.join(out_path,pdb_name+f"_loop_{loop_num}_{idx}_docking_ligand_out.pdbqt"))
     return new_config, vina_out
 
 
