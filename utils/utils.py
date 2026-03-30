@@ -511,7 +511,6 @@ def get_coor_from_protein_pdbqt(ligfile: str) -> dict:
     coor = []
     for line in lines:
         if len(line) > 60 and line[0:4]=='ATOM':
-            # print(line)
             if line[13] == 'H':
                 continue
             coor.append([
@@ -521,7 +520,6 @@ def get_coor_from_protein_pdbqt(ligfile: str) -> dict:
             ])
         if line[:7] == 'MODEL 2':
             break
-    # print(coor)
     return coor
 
 
@@ -529,7 +527,6 @@ def get_coordinates_from_pdb(pdb_file):
     parser = PDBParser(QUIET=True)
     structure = parser.get_structure('pdb', pdb_file)
     coordinates = []
-    # 获取原子坐标信息
     for model in structure:
         for chain in model:
             for residue in chain:
@@ -542,15 +539,6 @@ def get_coordinates_from_pdb(pdb_file):
 
 
 def get_coor_from_pdbqt(ligfile: str) -> dict:
-    '''
-    Get coordinates of the atoms in the ligand from a pdbqt file.
-    
-    Args:
-      ligfile (str): the pdbqt file of the ligand
-    
-    Returns:
-      A list of coordinates of atoms in the ligand.
-    '''
     with open(ligfile, "r") as f:
         lines = f.readlines()
     coor = []
@@ -708,29 +696,33 @@ def get_config(out_protein_path, out_ligand_path, out_path, pdb_name, original_n
 def read_first_docking_log(log_path):
     with open(log_path, 'r') as f:
         lines = f.readlines()[10:]
-    df = pd.DataFrame(columns=['mode', 'affinity', 'rmsd_l', 'rmsd_u'])
+    data_list = []
     for line in lines:
         if line.startswith('   1') or line.startswith('   2') or line.startswith('   3') or line.startswith('   4') or line.startswith('   5') or line.startswith('   6'):
             data = line.split()
-            df = df.append({'mode': int(data[0]), 
-                            'affinity': float(data[1]), 
-                            'rmsd_l': float(data[2]), 
-                            'rmsd_u': float(data[3])}, 
-                        ignore_index=True)
+            data_list.append({
+                'mode': int(data[0]),
+                'affinity': float(data[1]),
+                'rmsd_l': float(data[2]),
+                'rmsd_u': float(data[3])
+            })
+    df = pd.DataFrame(data_list, columns=['mode', 'affinity', 'rmsd_l', 'rmsd_u'])
     return df
 
 def read_first_docking_gnina_log(log_path):
     with open(log_path, 'r') as f:
         lines = f.readlines()[10:]
-    df = pd.DataFrame(columns=['mode', 'minimizedAffinity', 'CNNscore', 'CNNaffinity'])
+    data_list = []
     for line in lines:
         if line.startswith('    1') or line.startswith('    2') or line.startswith('    3') or line.startswith('    4') or line.startswith('    5') or line.startswith('    6'):
             data = line.split()
-            df = df.append({'mode': int(data[0]), 
-                            'minimizedAffinity': float(data[1]), 
-                            'CNNscore': float(data[2]), 
-                            'CNNaffinity': float(data[3])}, 
-                        ignore_index=True)
+            data_list.append({
+                'mode': int(data[0]),
+                'Affinity': float(data[1]),
+                'CNNscore': float(data[2]),
+                'CNNaffinity': float(data[3])
+            })
+    df = pd.DataFrame(data_list, columns=['mode', 'Affinity', 'CNNscore', 'CNNaffinity'])
     return df
 
 
